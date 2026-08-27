@@ -1,0 +1,92 @@
+name: Build App Store & Play Store Packages
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  # ── 1. GOOGLE PLAY STORE (ANDROID APK & AAB) ──────────────────────
+  build-android:
+    name: 🤖 Build Android Play Store (.apk / .aab)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Web Assets
+        run: npm run build
+
+      - name: Capacitor Sync Android
+        run: |
+          npm install @capacitor/core @capacitor/android @capacitor/cli
+          npx cap init "China Drop" "com.chinadrop.rwanda" --web-dir dist
+          npx cap add android
+          npx cap copy android
+
+      - name: Build Android APK (Debug / Release)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug assembleRelease
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChinaDrop-Android-PlayStore
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
+
+  # ── 2. APPLE APP STORE (iOS IPA / XCODE ARCHIVE) ─────────────────
+  build-ios:
+    name: 🍎 Build iOS App Store (.ipa / Xcode Archive)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Web Assets
+        run: npm run build
+
+      - name: Capacitor Sync iOS
+        run: |
+          npm install @capacitor/core @capacitor/ios @capacitor/cli
+          npx cap init "China Drop" "com.chinadrop.rwanda" --web-dir dist
+          npx cap add ios
+          npx cap copy ios
+
+      - name: Build Xcode Workspace
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath App.xcarchive archive CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload iOS App Store Archive Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChinaDrop-iOS-AppStore
+          path: ios/App/App.xcarchive
