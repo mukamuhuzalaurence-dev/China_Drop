@@ -26,7 +26,9 @@ dist-ssr
 # Native build artifacts
 android/app/build
 android/build
+android/local.properties
 ios/App/build
 ios/App/Pods
 ios/App/DerivedData
+
 

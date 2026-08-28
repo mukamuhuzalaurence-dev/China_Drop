@@ -16,6 +16,7 @@ import { CartDrawer } from './components/cart/CartDrawer';
 import { ProductDetailModal } from './components/products/ProductDetailModal';
 import { CustomSourcingModal } from './components/products/CustomSourcingModal';
 import { SearchOverlay } from './components/search/SearchOverlay';
+import { IosInstallPrompt } from './components/layout/IosInstallPrompt';
 
 const MainContent: React.FC = () => {
   const { activeTab } = useApp();
@@ -59,6 +60,7 @@ const MainContent: React.FC = () => {
       <ProductDetailModal />
       <CustomSourcingModal />
       <SearchOverlay />
+      <IosInstallPrompt />
     </>
   );
 };
